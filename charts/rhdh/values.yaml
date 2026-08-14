@@ -397,7 +397,7 @@ backstage:
               rules:
                 - allow: [Component, System]
               type: url
-            - target: https://github.com/JslYoon/ai-lab-template/blob/update-all-20260818/all.yaml
+            - target: https://github.com/JslYoon/ai-lab-template/blob/update-all-20260813/all.yaml
               type: url
               rules:
                 - allow: [Component, Location, Template]
