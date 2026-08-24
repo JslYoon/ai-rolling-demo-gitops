@@ -216,6 +216,14 @@ global:
       env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /app-root/gcp-creds.json
+      # TEMP: memory-limit test harness (lightspeed-stack OOM investigation). Remove after testing.
+      resources:
+        requests:
+          cpu: 100m
+          memory: 300Mi
+        limits:
+          cpu: "1"
+          memory: 300Mi
     configMaps:
       - name: stack
         create: false
