@@ -220,10 +220,10 @@ global:
       resources:
         requests:
           cpu: 100m
-          memory: 450Mi
+          memory: 380Mi
         limits:
           cpu: "1"
-          memory: 450Mi
+          memory: 380Mi
     configMaps:
       - name: stack
         create: false
