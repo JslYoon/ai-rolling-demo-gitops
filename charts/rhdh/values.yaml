@@ -205,6 +205,13 @@ global:
       name: "llama-stack-secrets"
     sidecar:
       image: quay.io/rh-ee-lyoon/lightspeed-stack:local
+      resources:
+        limits:
+          cpu: "1000m"
+          memory: "4Gi"
+        requests:
+          cpu: "100m"
+          memory: "1Gi"
       args:
         - --synthesized-config-output
         - /tmp/.generated/run.yaml
