@@ -61,7 +61,7 @@ data:
       providers:
         - id: notebooks
           type: pgvector
-          embedding_model: /rag-content/embeddings_model
+          embedding_model: BAAI/bge-base-en-v1.5
           embedding_dimension: 768
           config:
             host: ${env.PGVECTOR_HOST:=lightspeed-postgres-svc.lightspeed-postgres.svc.cluster.local}
