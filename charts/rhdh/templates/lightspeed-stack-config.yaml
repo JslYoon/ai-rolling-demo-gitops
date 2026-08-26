@@ -65,8 +65,8 @@ data:
       providers:
         - id: notebooks
           type: pgvector
-          embedding_model: BAAI/bge-base-en-v1.5
-          embedding_dimension: 768
+          embedding_model: BAAI/bge-small-en-v1.5
+          embedding_dimension: 384
           config:
             host: ${env.PGVECTOR_HOST:=lightspeed-postgres-svc.lightspeed-postgres.svc.cluster.local}
             port: "5432"  # TODO: fix lcore parsing and revert back to env
