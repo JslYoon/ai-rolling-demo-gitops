@@ -223,6 +223,8 @@ global:
       env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /app-root/gcp-creds.json
+        - name: HF_HOME
+          value: /tmp/huggingface
     configMaps:
       - name: stack
         create: false
