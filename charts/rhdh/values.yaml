@@ -198,17 +198,17 @@ global:
                     config:
                       id: intelligent-assistant
                       priority: 100
-      - package: oci://quay.io/rh-ee-lyoon/intelligent-assistant-backend:markitdown-test!red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend:bs_1.52.0__3.2.0
         disabled: false
     secret:
       create: false
       name: "llama-stack-secrets"
     sidecar:
-      image: quay.io/rh-ee-lyoon/lightspeed-stack:local
+      image: quay.io/lightspeed-core/lightspeed-stack:dev-20260811-0da4b12
       resources:
         limits:
           cpu: "2000m"
-          memory: "6Gi"
+          memory: "4Gi"
         requests:
           cpu: "100m"
           memory: "1Gi"
@@ -384,7 +384,7 @@ backstage:
               rules:
                 - allow: [Component, System]
               type: url
-            - target: https://github.com/JslYoon/ai-lab-template/blob/update-all-20260818/all.yaml
+            - target: https://github.com/redhat-ai-dev/ai-lab-template/blob/ai-rolling-demo-1_10/all.yaml
               type: url
               rules:
                 - allow: [Component, Location, Template]

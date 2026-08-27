@@ -5,9 +5,7 @@
 
 # GitOps repo settings
 export GITOPS_REPO_URL=
-# Staging deploys track the fork's 'development' branch — impl-rolling-demo
-# commits the catalog edit there, so the app MUST point at it.
-export GITOPS_TARGET_REVISION=development
+export GITOPS_TARGET_REVISION=
 export ODH_SETUP_DIR=
 export RHDH_NAMESPACE=rolling-demo-ns
 export ARGOCD_APP_NAME=rolling-demo

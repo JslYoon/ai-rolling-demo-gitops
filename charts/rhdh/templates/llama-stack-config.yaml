@@ -37,8 +37,8 @@ data:
         - provider_id: pypdf
           provider_type: inline::pypdf
           config:
-            default_chunk_size_tokens: 1200
-            default_chunk_overlap_tokens: 0
+            default_chunk_size_tokens: 1400
+            default_chunk_overlap_tokens: 150
     storage:
       backends:
         kv_default:
@@ -50,12 +50,8 @@ data:
           password: ${env.PGVECTOR_PASSWORD}
           table_name: ogx_kvstore
         sql_default:
-          type: sql_postgres
-          host: ${env.PGVECTOR_HOST:=lightspeed-postgres-svc.lightspeed-postgres.svc.cluster.local}
-          port: "5432"  # TODO: fix lcore parsing and revert back to env
-          db: ${env.PGVECTOR_DB}
-          user: ${env.PGVECTOR_USER}
-          password: ${env.PGVECTOR_PASSWORD}
+          type: sql_sqlite
+          db_path: /tmp/sql_store.db
       stores:
         metadata:
           namespace: registry
