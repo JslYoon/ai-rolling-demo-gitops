@@ -28,7 +28,8 @@ SECRET_NAME="llama-stack-secrets"
 log "Creating $SECRET_NAME secret..."
 kubectl create secret generic "$SECRET_NAME" \
     --namespace="$RHDH_NAMESPACE" \
-    --from-literal=ENABLE_VLLM="true" \
+    --from-literal=ENABLE_VLLM="${ENABLE_VLLM:-true}" \
+    --from-literal=ENABLE_OPENAI="${ENABLE_OPENAI:-}" \
     --from-literal=ENABLE_VALIDATION="${ENABLE_VALIDATION:-question_validity}" \
     --from-literal=VLLM_URL="$VLLM_URL" \
     --from-literal=VLLM_API_KEY="$VLLM_API_KEY" \
@@ -44,6 +45,11 @@ kubectl create secret generic "$SECRET_NAME" \
     --from-literal=VERTEX_AI_LOCATION="${VERTEX_AI_LOCATION:-global}" \
     --from-literal=VERTEX_AI_CREDENTIALS="${VERTEX_AI_CREDENTIALS:-}" \
     --from-literal=OTEL_SDK_DISABLED="${OTEL_SDK_DISABLED:-true}" \
+    --from-literal=KV_STORE_PATH="${KV_STORE_PATH:-/tmp/kvstore.db}" \
+    --from-literal=SQL_STORE_PATH="${SQL_STORE_PATH:-/tmp/sql_store.db}" \
+    --from-literal=SQLITE_STORE_DIR="${SQLITE_STORE_DIR:-/tmp/llama-stack-files}" \
+    --from-literal=BOOST_OGX_URL="${BOOST_OGX_URL:-}" \
+    --from-literal=BOOST_MODEL="${BOOST_MODEL:-}" \
     --dry-run=client -o yaml | kubectl apply --filename - --overwrite=true >/dev/null
 log "Secret $SECRET_NAME created successfully."
 
@@ -188,6 +194,9 @@ if [[ "${IS_SECONDARY_INSTANCE}" != "true" ]]; then
       --from-literal=user="$LIGHTSPEED_POSTGRES_USER" \
       --from-literal=password="$LIGHTSPEED_POSTGRES_PASSWORD" \
       --from-literal=db-name="$LIGHTSPEED_POSTGRES_DB" \
+      --from-literal=dev-db-name="${LIGHTSPEED_POSTGRES_DEV_DB:-}" \
+      --from-literal=dev-user="${LIGHTSPEED_POSTGRES_DEV_USER:-}" \
+      --from-literal=dev-password="${LIGHTSPEED_POSTGRES_DEV_PASSWORD:-}" \
       --dry-run=client -o yaml | kubectl apply --filename - --overwrite=true >/dev/null
   log "Secret $SECRET_NAME created successfully."
 fi

@@ -45,26 +45,31 @@ export ARGOCD_HOSTNAME="${ARGOCD_HOSTNAME:-dummy-argocd-hostname}"
 export ARGOCD_API_TOKEN="${ARGOCD_API_TOKEN:-dummy-argocd-token}"
 
 # setup lightspeed required secret values
-if [ -z "${VLLM_URL:-}" ] || [ -z "${VLLM_API_KEY:-}" ] || [ -z "${VALIDATION_PROVIDER:-}" ] || \
-   [ -z "${VALIDATION_MODEL_NAME:-}" ] || [ -z "${LIGHTSPEED_POSTGRES_USER:-}" ] || \
-   [ -z "${LIGHTSPEED_POSTGRES_PASSWORD:-}" ] || [ -z "${LIGHTSPEED_POSTGRES_DB:-}" ] || \
-   [ -z "${NOTEBOOKS_QUERY_PROVIDER_ID:-}" ] || [ -z "${NOTEBOOKS_QUERY_MODEL:-}" ]; then
+if [ -z "${OPENAI_API_KEY:-}" ] || [ -z "${VLLM_URL:-}" ] || [ -z "${VLLM_API_KEY:-}" ] || \
+   [ -z "${LIGHTSPEED_POSTGRES_USER:-}" ] || [ -z "${LIGHTSPEED_POSTGRES_PASSWORD:-}" ] || \
+   [ -z "${LIGHTSPEED_POSTGRES_DB:-}" ]; then
   echo "WARNING: Required secrets are not set. If you are working from a fork, push your branch to the upstream repo and re-open the PR from there. For local runs, see docs/TESTING.md." >&2
 fi
 # New LCORE images require OTEL_ANONYMIZATION_SECRET when OTEL is enabled (RAG path).
 # Disable the SDK in CI instead of provisioning that secret.
 export OTEL_SDK_DISABLED=true
+export KV_STORE_PATH="/tmp/kvstore.db"
+export SQL_STORE_PATH="/tmp/sql_store.db"
+export SQLITE_STORE_DIR="/tmp/llama-stack-files"
 export ENABLE_VALIDATION=__disabled__
 export ENABLE_VLLM="true"
+export ENABLE_OPENAI="true"
+export OPENAI_API_KEY="${OPENAI_API_KEY:?OPENAI_API_KEY must be set}"
 export VLLM_URL="${VLLM_URL:?VLLM_URL must be set}"
 export VLLM_API_KEY="${VLLM_API_KEY:?VLLM_API_KEY must be set}"
-export VALIDATION_PROVIDER="${VALIDATION_PROVIDER:?VALIDATION_PROVIDER must be set}"
-export VALIDATION_MODEL_NAME="${VALIDATION_MODEL_NAME:?VALIDATION_MODEL_NAME must be set}"
+# CI uses OpenAI while the shared vLLM test endpoint is unstable.
+export VALIDATION_PROVIDER="${VALIDATION_PROVIDER:-openai}"
+export VALIDATION_MODEL_NAME="${VALIDATION_MODEL_NAME:-gpt-4o-mini}"
 export LIGHTSPEED_POSTGRES_USER="${LIGHTSPEED_POSTGRES_USER:?LIGHTSPEED_POSTGRES_USER must be set}"
 export LIGHTSPEED_POSTGRES_PASSWORD="${LIGHTSPEED_POSTGRES_PASSWORD:?LIGHTSPEED_POSTGRES_PASSWORD must be set}"
 export LIGHTSPEED_POSTGRES_DB="${LIGHTSPEED_POSTGRES_DB:?LIGHTSPEED_POSTGRES_DB must be set}"
-export NOTEBOOKS_QUERY_PROVIDER_ID="${NOTEBOOKS_QUERY_PROVIDER_ID:?NOTEBOOKS_QUERY_PROVIDER_ID must be set}"
-export NOTEBOOKS_QUERY_MODEL="${NOTEBOOKS_QUERY_MODEL:?NOTEBOOKS_QUERY_MODEL must be set}"
+export NOTEBOOKS_QUERY_PROVIDER_ID="${NOTEBOOKS_QUERY_PROVIDER_ID:-openai}"
+export NOTEBOOKS_QUERY_MODEL="${NOTEBOOKS_QUERY_MODEL:-gpt-4o-mini}"
 
 # we consider this to be a secondary instance. This will skip pipelines-as-code-secret
 # and lightspeed-postgres-info secrets, since their namespaces do not exist on kind
@@ -110,7 +115,8 @@ source "$SCRIPTS_DIR/setup-secrets.sh"
 
 # LCORE notebooks provider is remote::pgvector and fails hard if this host is missing.
 # Kind skips the Helm lightspeed-postgres template (global.ci); deploy a slim emptyDir
-# instance so lightspeed-core can start. Hostname must match llama-stack-config default:
+# instance so lightspeed-core can start. Hostname must match the PGVECTOR_HOST default
+# in lightspeed-stack-config.yaml:
 # lightspeed-postgres-svc.lightspeed-postgres.svc.cluster.local
 # setup-secrets skips the postgres-ns secret when IS_SECONDARY_INSTANCE=true.
 log "Deploying Kind pgvector Postgres for LCORE..."
@@ -134,14 +140,27 @@ kubectl exec -n "$LIGHTSPEED_POSTGRES_NAMESPACE" deploy/postgres -- \
   psql -U "$LIGHTSPEED_POSTGRES_USER" -d "$LIGHTSPEED_POSTGRES_DB" \
   -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
+# Strip OKP config from lightspeed-stack so LCORE starts without OKP on Kind.
+# The file is a Helm ConfigMap template ({{ .Release.Namespace }}), so yq can't
+# parse it — use sed instead. Removes "- okp" from rag.retrieval.tool.sources
+# and the nested rag.okp block.
+log "Stripping OKP config from lightspeed-stack-config for CI..."
+sed -i.bak '/^[[:space:]]*- okp$/d' \
+  "$GITOPS_DIR/charts/rhdh/templates/lightspeed-stack-config.yaml"
+sed -i.bak '/^      okp:$/,/^      [^ ]/{ /^      [^ ]/!d; /^      okp:$/d; }' \
+  "$GITOPS_DIR/charts/rhdh/templates/lightspeed-stack-config.yaml"
+rm -f "$GITOPS_DIR/charts/rhdh/templates/lightspeed-stack-config.yaml.bak"
+
 # initial installation of rhdh-chart provided our ci values
 log "Installing RHDH chart via Helm..."
+# Disable plugins that aren't needed for CI/kind environments.
+# NOTE: If the dynamic plugins list in values.yaml changes, these indices may need adjustment.
+# Current: plugins[12] = scaffolder-mcp-extras
 helm install "$ARGOCD_APP_NAME" "$GITOPS_DIR/charts/rhdh" \
   --namespace "$RHDH_NAMESPACE" \
   -f "$GITOPS_DIR/charts/rhdh/values.yaml" \
   -f "$GITOPS_DIR/ci/values-ci.yaml" \
-  --set 'global.dynamic.plugins[8].disabled=true' \
-  --set 'global.dynamic.plugins[9].disabled=true' \
+  --set 'global.dynamic.plugins[12].disabled=true' \
   --timeout 40m \
   --wait
 

@@ -31,6 +31,9 @@ jobs:
             "https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64"
           sudo install /tmp/yq /usr/local/bin/yq
 
+      - name: Test skills volume patch
+        run: bash tests/helm/test-skills-volume.sh
+
       - name: Deploy RHDH on Kind
         env:
           GH_APP_APP_ID: ${{ secrets.GH_APP_APP_ID }}
@@ -49,6 +52,7 @@ jobs:
           QUAY_DOCKERCONFIGJSON: ${{ secrets.QUAY_DOCKERCONFIGJSON }}
           VLLM_URL: ${{ secrets.VLLM_URL }}
           VLLM_API_KEY: ${{ secrets.VLLM_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           VALIDATION_PROVIDER: ${{ secrets.VALIDATION_PROVIDER }}
           VALIDATION_MODEL_NAME: ${{ secrets.VALIDATION_MODEL_NAME }}
           LIGHTSPEED_POSTGRES_USER: ${{ secrets.LIGHTSPEED_POSTGRES_USER }}
