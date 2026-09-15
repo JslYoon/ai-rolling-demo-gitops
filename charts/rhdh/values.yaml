@@ -221,6 +221,15 @@ global:
         # without this, embedding model loading fails writing to ~/.cache. Mirrors upstream.
         - name: HF_HOME
           value: /tmp/hf_cache
+      # Raise the sidecar memory ceiling from the chart default (2Gi). The embedding
+      # model (nomic-embed ~440MB) + torch load lazily on first RAG query; 2Gi is tight.
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 4Gi
     configMaps:
       - name: stack
         create: false
