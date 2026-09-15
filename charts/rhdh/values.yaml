@@ -235,7 +235,10 @@ global:
       # load lazily on first RAG query, so memory stays at 4Gi.
       resources:
         requests:
-          cpu: "1"
+          # Keep the request small so the pod schedules on the tight 2-node
+          # cluster; CFS throttling is bounded by the limit (quota), not the
+          # request, so limit=4 alone removes the embedding throttling.
+          cpu: 200m
           memory: 512Mi
         limits:
           cpu: "4"
