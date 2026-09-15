@@ -16,7 +16,7 @@ data:
     llama_stack:
       use_as_library_client: true
       config:
-        baseline: empty
+        baseline: default
         native_override:
           vector_stores:
             annotation_prompt_params:
