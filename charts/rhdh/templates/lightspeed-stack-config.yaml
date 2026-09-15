@@ -14,8 +14,7 @@ data:
       color_log: true
       access_log: true
       max_concurrent_file_uploads: 3
-      max_concurrent_vector_store_attaches: 3
-  max_concurrent_vector_store_attaches: 8
+      max_concurrent_vector_store_attaches: 8
     llama_stack:
       use_as_library_client: true
       config:
