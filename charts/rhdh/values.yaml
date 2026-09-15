@@ -228,6 +228,14 @@ global:
         # generator only seds the sidecar image line, leaving this env intact.
         - name: OKP_SERVICE_URL
           value: "http://{{ .Release.Name }}-lightspeed-okp-{{ .Release.Namespace }}.{{ .Values.global.clusterRouterBase }}"
+      # TEMP: memory-limit test harness (lightspeed-stack OOM investigation). Remove after testing.
+      resources:
+        requests:
+          cpu: 100m
+          memory: 1Gi
+        limits:
+          cpu: "1"
+          memory: 32i
     configMaps:
       - name: stack
         create: false
