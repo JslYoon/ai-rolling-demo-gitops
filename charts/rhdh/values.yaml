@@ -235,7 +235,7 @@ global:
           memory: 1Gi
         limits:
           cpu: "1"
-          memory: 32i
+          memory: 4Gi
     configMaps:
       - name: stack
         create: false
