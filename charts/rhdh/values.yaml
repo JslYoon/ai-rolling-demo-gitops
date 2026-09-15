@@ -80,7 +80,7 @@ global:
       # Boost Plugins
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-boost:bs_1.54.6__0.5.4
         disabled: false
-      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-ogx-entity-provider:bs_1.52.0__0.3.0
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-ogx-entity-provider:bs_1.54.6__0.5.0
         disabled: false
 
       # Tekton CI (NFS — no pluginConfig needed)
@@ -228,6 +228,14 @@ global:
         # generator only seds the sidecar image line, leaving this env intact.
         - name: OKP_SERVICE_URL
           value: "http://{{ .Release.Name }}-lightspeed-okp-{{ .Release.Namespace }}.{{ .Values.global.clusterRouterBase }}"
+      # TEMP: memory-limit test harness (lightspeed-stack OOM investigation). Remove after testing.
+      resources:
+        requests:
+          cpu: 100m
+          memory: 1Gi
+        limits:
+          cpu: "1"
+          memory: 4Gi
     configMaps:
       - name: stack
         create: false
